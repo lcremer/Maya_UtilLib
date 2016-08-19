@@ -4,44 +4,31 @@ from PySide import QtGui
 import maya.OpenMayaUI as mui
 import shiboken
 
-try:
-    import Maya_Rigging as Rigging
-except:
-    pass
-
-try:
-    import Maya_VertexColor as VertexColor
-except:
-    pass
-
 
 def getMayaWindow():
     pointer = mui.MQtUtil.mainWindow()
     return shiboken.wrapInstance(long(pointer), QtGui.QMainWindow)
 
+
 def MainMenu():
-    if pm.menu('ToolBox', exists=1):
-        pm.deleteUI('ToolBox')
-    toolBoxM = pm.menu('ToolBox', p='MayaWindow', tearOff=1, allowOptionBoxes=1, label='ToolBox')
+    if pm.menu('CustomTools', exists=1):
+        pm.deleteUI('CustomTools')
+    toolBoxM = pm.menu('CustomTools', p='MayaWindow', tearOff=1, allowOptionBoxes=1, label='Custom Tools')
 
     # Rigging Tools
-    RiggingMenu()
-
-    # Misc Tools
-    MiscMenu()
-
-
-def RiggingMenu():
     try:
-        riggingM = pm.menuItem(parent='ToolBox', subMenu=True, tearOff=True, label='Rigging')
-        pm.menuItem(label='Auto Rig', command=partial(Rigging.UI.AutoRig.Open))
+        import Maya_Rigging
+        riggingM = pm.menuItem(parent='CustomTools', subMenu=True, tearOff=True, label='Rigging')
+        pm.menuItem(label='Auto Rig', command=partial(Maya_Rigging.UI.AutoRig.Open))
     except:
+        print('failed to import Maya_Rigging')
         pass
 
-
-def MiscMenu():
+    # Misc Tools
     try:
-        miscM = pm.menuItem(parent='ToolBox', subMenu=True, tearOff=True, label='Misc')
-        pm.menuItem(label='Vertex Color', command=partial(VertexColor.Gradient.UI.Open))
+        import Maya_VertexColor
+        miscM = pm.menuItem(parent='CustomTools', subMenu=True, tearOff=True, label='Misc')
+        pm.menuItem(label='Vertex Color', command=partial(Maya_VertexColor.Gradient.UI.Open))
     except:
+        print('failed to import Maya_VertexColor')
         pass
