@@ -1,6 +1,5 @@
 import sys, types
 
-
 def gReloadModule(inModule):
     """Reload the given module and all children"""
 
@@ -21,3 +20,20 @@ def gReloadModule(inModule):
         oldmodule = loaded_modules[key]
         oldmodule.__dict__.clear()
         oldmodule.__dict__.update(newmodule.__dict__)
+
+def all():
+    gReloadModule()
+
+    try:
+        print('Reloading Maya_Rigging Module')
+        Maya_UtilLib.Reload.gReloadModule(Maya_Rigging)
+    except:
+        pass
+
+    try:
+        print('Reloading Maya_VertexColor Module')
+        Maya_UtilLib.Reload.gReloadModule(Maya_VertexColor)
+    except:
+        pass
+
+    Maya_UtilLib.MainMenu.Create()
