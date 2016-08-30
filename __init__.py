@@ -3,24 +3,24 @@ import sys
 import UI
 import Easing
 import VMath
-import Reload
 import pymel.core as pm
 from functools import partial
 
 
-def reloadModule(name="Maya_UtilLib", *args):
+def ReloadAll():
+    ReloadModule('Maya_Rigging')
+    ReloadModule('Maya_VertexColor')
+    ReloadModule('Maya_UtilLib')
 
+
+def ReloadModule(name="Maya_UtilLib", *args):
     module = __import__(name, globals(), locals(), ["*"], -1)
-
     path = module.__path__[0]
-
     __reloadRecursive(path, name)
 
 
 def __reloadRecursive(path, parentName):
-
     for root, dirs, files in os.walk(path, True, None):
-
         # parse all the files of given path and reload python modules
         for sfile in files:
             if sfile.endswith(".py"):
@@ -61,7 +61,7 @@ class MenuSingleton:
 
         def Reload(self):
             for m in self.Modules:
-                reloadModule(name=m)
+                ReloadModule(name=m)
 
         def DrawModuleMenus(self):
             for drawFunc in self.ModuleMenusFunc:
