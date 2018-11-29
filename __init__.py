@@ -1,8 +1,8 @@
 import os
 import sys
-import UI
-import Easing
-import VMath
+import Maya_UtilLib.UI
+import Maya_UtilLib.Easing
+import Maya_UtilLib.VMath
 import pymel.core as pm
 from functools import partial
 

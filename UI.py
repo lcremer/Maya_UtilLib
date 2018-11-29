@@ -1,8 +1,8 @@
-from PySide import QtGui
+from PySide2 import QtWidgets
 import maya.OpenMayaUI as mui
-import shiboken
+import shiboken2
 
 
 def getMayaWindow():
     pointer = mui.MQtUtil.mainWindow()
-    return shiboken.wrapInstance(long(pointer), QtGui.QMainWindow)
+    return shiboken2.wrapInstance(long(pointer), QtWidgets.QMainWindow)
