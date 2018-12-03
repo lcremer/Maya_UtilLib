@@ -1,61 +1,72 @@
-from pymel.core.datatypes import Vector, Matrix, Point
+from pymel.core.datatypes import Vector, Matrix, Point, BoundingBox
 import math
 
 
-def ProjectPointOntoLine(a, b, point):
+# Note: Maya data types for Vector already supports Vector Projections, some of these methods are here as reference
+# Example: Vector(a).projectionOnto(b)
+
+
+def project_point_onto_line(a, b, point):
+    # type: (Vector, Vector, Point) -> Point
+    """ Returns point projected on line between vectors a and b """
     ap = point - a
     ab = b - a
     return a + ap.dot(ab) / ab.dot(ab) * ab
 
 
-def ProjectVectorOntoVector(a, b):
+def project_vector_onto_vector(a, b):
+    # type: (Vector, Vector) -> Vector
+    """ Returns vector projected on line between vectors a and b """
     return a.cross(b) / a.length() * a
 
 
-def ProjectPointOntoSphere(bounds, point, inner=True):
-    bW = bounds.width()
-    bD = bounds.depth()
-    bH = bounds.height()
+# TODO: reconsider the purpose of inner, this is not very clear
+def project_point_onto_sphere(bounds, point, inner=True):
+    # type: (BoundingBox, Point, bool) -> Point
+    b_w = bounds.width()
+    b_d = bounds.depth()
+    b_h = bounds.height()
 
-    shortest = bW
-    if shortest > bD:
-        shortest = bD
-    if shortest > bH:
-        shortest = bH
+    shortest = b_w
+    if shortest > b_d:
+        shortest = b_d
+    if shortest > b_h:
+        shortest = b_h
     if inner:
         radius = shortest / 2
     else:
         radius = (bounds.min() - bounds.max()).length() / 2
 
-    sphereCenter = bounds.center()
+    sphere_center = bounds.center()
 
-    n = point - sphereCenter
+    n = point - sphere_center
     n.normalize()
-    return sphereCenter + (n * radius)
+    return sphere_center + (n * radius)
 
 
-def ProjectPointOntoScaledSphere(bounds, point, inner=True):
-    bW = bounds.width()
-    bD = bounds.depth()
-    bH = bounds.height()
+def project_point_onto_scaled_sphere(bounds, point, inner=True):
+    # type: (BoundingBox, Point, bool) -> Point
+    b_w = bounds.width()
+    b_d = bounds.depth()
+    b_h = bounds.height()
 
-    shortest = bW
-    if shortest > bD:
-        shortest = bD
-    if shortest > bH:
-        shortest = bH
+    shortest = b_w
+    if shortest > b_d:
+        shortest = b_d
+    if shortest > b_h:
+        shortest = b_h
 
     if inner:
         radius = shortest / 2
     else:
-        radius = (bounds.min() - bounds.max()).length()/2
-    rRatio = Vector(bW / shortest, bH / shortest, bD / shortest)
+        radius = (bounds.min() - bounds.max()).length() / 2
+    r_ratio = Vector(b_w / shortest, b_h / shortest, b_d / shortest)
 
-    sphereCenter = bounds.center()
+    sphere_center = bounds.center()
 
-    n = point - sphereCenter
+    n = point - sphere_center
     n.normalize()
-    return sphereCenter + (Vector(n[0]*rRatio[0], n[1]*rRatio[1], n[2]*rRatio[2])) * radius
+    return sphere_center + (Vector(n[0] * r_ratio[0], n[1] * r_ratio[1], n[2] * r_ratio[2])) * radius
 
 
 # TODO: finish implementing
@@ -107,14 +118,14 @@ def ProjectPointOntoScaledSphere(bounds, point, inner=True):
 #             return point + (direction * di1)
 
 
-def BoundingBoxIntersection(bounds, point, direction):
-
+def bounding_box_intersection(bounds, point, direction):
+    # type: (BoundingBox, Point, Vector) -> Point
     x = 0
     y = 1
     z = 2
 
-    bMax = bounds.max()
-    bMin = bounds.min()
+    b_max = bounds.max()
+    b_min = bounds.min()
     direction = direction.normal()
 
     dir = direction
@@ -124,14 +135,14 @@ def BoundingBoxIntersection(bounds, point, direction):
         dir[y] = float('Inf')
     if dir[z] == 0:
         dir[z] = float('Inf')
-    invDir = Vector(1 / dir[x], 1 / dir[y], 1 / dir[z])
+    inv_dir = Vector(1 / dir[x], 1 / dir[y], 1 / dir[z])
 
-    t1 = (bMin[x] - point[x]) * invDir[x]
-    t2 = (bMax[x] - point[x]) * invDir[x]
-    t3 = (bMin[y] - point[y]) * invDir[y]
-    t4 = (bMax[y] - point[y]) * invDir[y]
-    t5 = (bMin[z] - point[z]) * invDir[z]
-    t6 = (bMax[z] - point[z]) * invDir[z]
+    t1 = (b_min[x] - point[x]) * inv_dir[x]
+    t2 = (b_max[x] - point[x]) * inv_dir[x]
+    t3 = (b_min[y] - point[y]) * inv_dir[y]
+    t4 = (b_max[y] - point[y]) * inv_dir[y]
+    t5 = (b_min[z] - point[z]) * inv_dir[z]
+    t6 = (b_max[z] - point[z]) * inv_dir[z]
 
     tmin = max(max(min(t1, t2), min(t3, t4)), min(t5, t6))
     tmax = min(min(max(t1, t2), max(t3, t4)), max(t5, t6))
@@ -151,7 +162,8 @@ def BoundingBoxIntersection(bounds, point, direction):
     return point + (direction * t)
 
 
-def MatrixFromNormal(up, forward=Vector(0, 0, 1)):
+def matrix_from_normal(up, forward=Vector(0, 0, 1)):
+    # type: (Vector, Vector) -> Matrix
     up.normalize()
     forward.normalize()
 

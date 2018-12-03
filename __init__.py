@@ -1,6 +1,5 @@
 import os
 import sys
-import Maya_UtilLib.UI
 import Maya_UtilLib.Easing
 import Maya_UtilLib.VMath
 import pymel.core as pm

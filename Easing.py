@@ -146,7 +146,7 @@ def EasingList():
             # Exponential
             'ExponentialIn',
             'ExponentialOut',
-            'ExponentialInOut'
+            'ExponentialInOut',
             # Circular
             'CircularIn',
             'CircularOut']
