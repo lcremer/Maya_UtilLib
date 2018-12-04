@@ -4,44 +4,48 @@ import Maya_UtilLib.Easing
 import Maya_UtilLib.VMath
 import pymel.core as pm
 from functools import partial
+from PySide2 import QtWidgets as widgets
+
+ui_name = "LeoTools"
+ui_title = "Leo's Tools"
 
 
-def ReloadAll():
-    ReloadModule('Maya_Rigging')
-    ReloadModule('Maya_VertexColor')
-    ReloadModule('Maya_UtilLib')
+def main_window():
+    for widget in widgets.qApp.topLevelWidgets():
+        if widget.objectName() == 'MayaWindow':
+            return widget
+    # TODO: figure out why this isnt working
+    #raise MessageException('QT Main window could not be detected')
 
 
-def ReloadModule(name="Maya_UtilLib", *args):
+def get_module_path(name='Maya_UtilLib'):
     module = __import__(name, globals(), locals(), ["*"], -1)
     path = module.__path__[0]
-    __reloadRecursive(path, name)
+    return path
 
 
-def __reloadRecursive(path, parentName):
-    for root, dirs, files in os.walk(path, True, None):
-        # parse all the files of given path and reload python modules
-        for sfile in files:
-            if sfile.endswith(".py"):
-                if sfile == "__init__.py":
-                    name = parentName
-                else:
-                    name = parentName+"."+sfile[:-3]
+def remove_module(name):
+    print('info', 'Removing {} module'.format(name))
 
-                try:
-                    module = __import__(name, globals(), locals(), ["*"], -1)
-                    reload(module)
-                except ImportError, e:
-                    for arg in e.args:
-                        sys.stdout.write('ImportError: ' + arg)
-                except Exception, e:
-                    for arg in e.args:
-                        sys.stdout.write('Exception: ' + arg)
+    to_delete = []
+    for m in sys.modules:
+        if m.split('.')[0] == name:
+            to_delete.append(m)
 
-        # Now reload sub modules
-        for dirName in dirs:
-            __reloadRecursive(path+"/"+dirName, parentName+"."+dirName)
-        break
+    for m in to_delete:
+        del (sys.modules[m])
+
+
+def remove_all_modules():
+    remove_module('Maya_Rigging')
+    remove_module('Maya_VertexColor')
+    #remove_module('Maya_UtilLib')
+
+    try:
+        import Maya_Rigging
+        import Maya_VertexColor
+    except:
+        pass
 
 
 class MenuSingleton:
@@ -50,19 +54,15 @@ class MenuSingleton:
             self.Modules = []
             self.ModuleMenusFunc = []
 
-        def Add(self, module, menuFunc):
+        def add(self, module, menu_func):
             if module in self.Modules:
                 return
-            if menuFunc in self.ModuleMenusFunc:
+            if menu_func in self.ModuleMenusFunc:
                 return
             self.Modules.append(module)
-            self.ModuleMenusFunc.append(menuFunc)
+            self.ModuleMenusFunc.append(menu_func)
 
-        def Reload(self):
-            for m in self.Modules:
-                ReloadModule(name=m)
-
-        def DrawModuleMenus(self):
+        def draw_module_menus(self):
             for drawFunc in self.ModuleMenusFunc:
                 drawFunc()
 
@@ -75,21 +75,32 @@ class MenuSingleton:
     def __getattr__(self, name):
         return getattr(self.instance, name)
 
-    def AddModuleMenu(self, module, menuFunc):
-        self.instance.Add(module, menuFunc)
+    def add_module_menu(self, module, menu_func):
+        # type: (str, function) -> None
+        self.instance.add(module, menu_func)
 
-    def ReloadAll(self, *args):
+    def reload_all(self, *args):
         self.instance.Reload()
 
-    def Draw(self):
-        if pm.menu('CustomTools', exists=1):
-            pm.deleteUI('CustomTools')
-        toolBoxM = pm.menu('CustomTools', p='MayaWindow', tearOff=1, allowOptionBoxes=1, label='Custom Tools')
+    @staticmethod
+    def remove_all(self):
+        remove_all_modules()
 
-        self.instance.DrawModuleMenus()
+    @staticmethod
+    def kill(self):
+        i = os.getpid()
+        os.system("taskkill /PID " + str(i) + " /f")
 
-        pm.setParent(toolBoxM, menu=True)
-        pm.menuItem(label="Reload", command=partial(self.ReloadAll))
+    def draw(self):
+        if pm.menu(ui_name, exists=1):
+            pm.deleteUI(ui_name)
+        tool_box_m = pm.menu(ui_name, p='MayaWindow', tearOff=1, allowOptionBoxes=1, label=ui_title)
+
+        self.instance.draw_module_menus()
+
+        pm.setParent(tool_box_m, menu=True)
+        pm.menuItem(label="Reset", command=partial(self.remove_all))
+        pm.menuItem(label="Kill Maya", command=partial(self.kill))
 
 
 Menu = MenuSingleton()
