@@ -8,6 +8,7 @@ def distance_to_scene_units(distance):
     """
     unit = pmc.currentUnit(q=True)
 
+    # Chose not to use convertUnit(value, fromUnit, toUnit) because it returns suffix in string
     # millimeters
     if unit == 'mm':
         return distance * 10
@@ -26,3 +27,24 @@ def distance_to_scene_units(distance):
     # yard
     if unit == 'yd':
         return distance / 91.44
+
+
+def conversion_factor():
+    unit = pmc.currentUnit(q=True)
+    if unit == 'mm':
+        return 10
+    # centimeters
+    if unit == 'cm':
+        return 1
+    # meters
+    if unit == 'm':
+        return .01
+    # inch
+    if unit == 'in':
+        return 1 / 2.54
+    # foot
+    if unit == 'ft':
+        return 1 / 30.48
+    # yard
+    if unit == 'yd':
+        return 1 / 91.44
